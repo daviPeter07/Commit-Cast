@@ -55,6 +55,8 @@ Crie um arquivo `.env` com base no `.env.example`:
 PORT=3000
 DISCORD_WEBHOOK_URL=
 GITHUB_WEBHOOK_SECRET=
+GITHUB_ALLOWED_ORG=
+ALLOWED_REPOS=
 OPENROUTER_API_KEY=
 OPENROUTER_MODEL=openai/gpt-oss-120b:free
 ```
@@ -73,11 +75,27 @@ Exemplo completo:
 PORT=3000
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 GITHUB_WEBHOOK_SECRET=meu-segredo
+GITHUB_ALLOWED_ORG=minha-org
+ALLOWED_REPOS=minha-org/repo-api,minha-org/repo-site
 OPENROUTER_API_KEY=sk-or-v1-...
 OPENROUTER_MODEL=openai/gpt-oss-120b:free
 ```
 
 Se `OPENROUTER_API_KEY` nao for definido, o projeto continua funcionando normalmente, apenas sem resumo por IA.
+
+### Selecionando apenas os repositorios desejados
+
+- `GITHUB_ALLOWED_ORG`: restringe os eventos a uma organizacao especifica.
+- `ALLOWED_REPOS`: lista separada por virgula com os repositorios que devem gerar notificacao.
+
+Exemplo:
+
+```env
+GITHUB_ALLOWED_ORG=minha-org
+ALLOWED_REPOS=minha-org/repo-api,minha-org/repo-site,minha-org/repo-bot
+```
+
+Se `ALLOWED_REPOS` ficar vazio, o backend aceita todos os repositorios da organizacao definida em `GITHUB_ALLOWED_ORG`.
 
 ## Rodando localmente
 
@@ -118,7 +136,24 @@ Resposta de health check:
 5. Copie a URL gerada.
 6. Defina essa URL na variavel `DISCORD_WEBHOOK_URL`.
 
-## Como configurar o GitHub Webhook
+## Como configurar o GitHub Webhook da organizacao
+
+1. No GitHub, abra a organizacao.
+2. Acesse `Settings > Webhooks`.
+3. Clique em `Add webhook`.
+4. Em `Payload URL`, informe a URL publica do seu backend seguida de `/webhooks/github`.
+5. Em `Content type`, escolha `application/json`.
+6. Em `Secret`, informe o mesmo valor usado em `GITHUB_WEBHOOK_SECRET`.
+7. Em `Which events would you like to trigger this webhook?`, selecione `Let me select individual events`.
+8. Marque `Pushes`.
+9. Marque `Pull requests`.
+10. Salve o webhook.
+
+O backend vai receber os eventos da organizacao e filtrar automaticamente apenas os repositorios listados em `ALLOWED_REPOS`.
+
+## Como configurar um webhook por repositorio
+
+Se voce quiser usar webhook por repositorio em vez de organizacao:
 
 1. No repositorio GitHub, abra `Settings > Webhooks`.
 2. Clique em `Add webhook`.
@@ -209,13 +244,14 @@ ngrok http 3000
 ```
 
 3. Copie a URL HTTPS gerada pelo ngrok.
-4. Configure no GitHub a `Payload URL` como:
+4. Configure no GitHub a `Payload URL` do webhook da organizacao como:
 
 ```text
 https://SUA-URL.ngrok-free.app/webhooks/github
 ```
 
-5. Faca um push ou abra/sincronize/feche um PR para validar o fluxo.
+5. Garanta que `GITHUB_ALLOWED_ORG` e `ALLOWED_REPOS` estejam configurados.
+6. Faca um push ou abra/sincronize/feche um PR em um dos repositorios permitidos para validar o fluxo.
 
 Se preferir, pode usar qualquer outra URL publica, como Cloudflare Tunnel ou a URL do proprio deploy.
 
@@ -232,7 +268,7 @@ Se preferir, pode usar qualquer outra URL publica, como Cloudflare Tunnel ou a U
 9. Adicione `OPENROUTER_API_KEY` com sua chave do OpenRouter, se quiser resumo IA.
 10. Adicione `OPENROUTER_MODEL` com o modelo do OpenRouter, opcional.
 11. Conclua o deploy.
-12. Use a URL publica gerada pelo Render para cadastrar o webhook do GitHub.
+12. Use a URL publica gerada pelo Render para cadastrar o webhook da organizacao no GitHub.
 
 ## Observacoes
 

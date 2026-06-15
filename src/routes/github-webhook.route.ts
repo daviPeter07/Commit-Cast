@@ -3,9 +3,11 @@ import express, { type Request, type Response } from "express";
 import { env } from "../config/env";
 import { sendDiscordWebhook } from "../services/discord.service";
 import { buildDiscordPayloadFromGitHubEvent } from "../services/github-event.service";
+import { isAllowedGitHubWebhookPayload } from "../utils/is-allowed-github-webhook-payload";
 import { verifyGitHubSignature } from "../utils/verify-github-signature";
 
 const githubWebhookRouter = express.Router();
+const SUPPORTED_EVENTS = new Set(["push", "pull_request"]);
 
 githubWebhookRouter.post(
   "/",
@@ -38,7 +40,21 @@ githubWebhookRouter.post(
           .json({ error: "Missing x-github-event header." });
       }
 
+      if (!SUPPORTED_EVENTS.has(eventName)) {
+        return response.status(200).json({ message: `Ignored event: ${eventName}` });
+      }
+
       const payload = JSON.parse(rawBody.toString("utf8"));
+      const allowDecision = isAllowedGitHubWebhookPayload(
+        payload,
+        env.githubAllowedOrg,
+        env.allowedRepos,
+      );
+
+      if (!allowDecision.allowed) {
+        return response.status(200).json({ message: allowDecision.reason });
+      }
+
       const discordPayload = await buildDiscordPayloadFromGitHubEvent(
         eventName,
         payload,

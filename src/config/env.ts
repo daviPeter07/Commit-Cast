@@ -25,6 +25,19 @@ function getRequiredEnv(name: string): string {
   return value;
 }
 
+function parseCsvEnv(name: string): string[] {
+  const value = process.env[name];
+
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function getOpenRouterFreeModel(): string {
   const model =
     process.env.OPENROUTER_MODEL || "openai/gpt-oss-120b:free";
@@ -42,6 +55,10 @@ export const env = {
   port: Number(process.env.PORT || 3000),
   discordWebhookUrl: getRequiredEnv("DISCORD_WEBHOOK_URL"),
   githubWebhookSecret: getRequiredEnv("GITHUB_WEBHOOK_SECRET"),
+  githubAllowedOrg: process.env.GITHUB_ALLOWED_ORG?.trim().toLowerCase(),
+  allowedRepos: new Set(
+    parseCsvEnv("ALLOWED_REPOS").map((repo) => repo.toLowerCase()),
+  ),
   openRouterApiKey: process.env.OPENROUTER_API_KEY,
   openRouterModel: getOpenRouterFreeModel(),
 };
