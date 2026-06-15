@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Commit Cast</title>
+    <meta
+      name="description"
+      content="Painel de apresentacao do backend que recebe webhooks do GitHub e envia notificacoes resumidas para o Discord."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">GitHub x Discord x OpenRouter</p>
+          <h1>Commit Cast transforma eventos do GitHub em notificacoes prontas para o time.</h1>
+          <p class="lede">
+            Backend leve para receber webhooks, validar assinatura, resumir mudancas com IA opcional
+            e publicar tudo em um canal do Discord via webhook.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="/health">Ver health check</a>
+            <a class="button button-secondary" href="#setup">Guia rapido</a>
+          </div>
+        </div>
+
+        <aside class="status-card">
+          <div class="status-card-header">
+            <span class="status-dot" id="health-dot"></span>
+            <span id="health-label">Verificando backend</span>
+          </div>
+          <dl class="status-grid">
+            <div>
+              <dt>Servico</dt>
+              <dd id="service-name">github-discord-notifier</dd>
+            </div>
+            <div>
+              <dt>Endpoint</dt>
+              <dd>/webhooks/github</dd>
+            </div>
+            <div>
+              <dt>Eventos</dt>
+              <dd>push, pull_request</dd>
+            </div>
+            <div>
+              <dt>Resumo IA</dt>
+              <dd>OpenRouter opcional</dd>
+            </div>
+          </dl>
+          <pre class="status-snippet">POST /webhooks/github
+GET /health</pre>
+        </aside>
+      </header>
+
+      <main>
+        <section class="section-grid" aria-label="Resumo de capacidades">
+          <article class="feature-panel feature-panel-accent">
+            <p class="panel-kicker">Fluxo</p>
+            <h2>Do evento bruto ao aviso legivel</h2>
+            <p>
+              O projeto recebe `push` e `pull_request`, valida a assinatura do GitHub com `x-hub-signature-256`,
+              monta um embed com contexto e pode incluir um resumo natural vindo do OpenRouter.
+            </p>
+          </article>
+
+          <article class="feature-panel">
+            <p class="panel-kicker">Stack</p>
+            <ul class="stack-list">
+              <li>Node.js + TypeScript</li>
+              <li>Express</li>
+              <li>crypto nativo do Node</li>
+              <li>fetch nativo</li>
+              <li>Discord Webhook</li>
+            </ul>
+          </article>
+
+          <article class="feature-panel">
+            <p class="panel-kicker">Principais rotas</p>
+            <ul class="stack-list">
+              <li>`GET /` apresenta o projeto</li>
+              <li>`GET /health` retorna status</li>
+              <li>`POST /webhooks/github` recebe eventos</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="timeline" id="setup">
+          <div class="timeline-heading">
+            <p class="eyebrow">Setup</p>
+            <h2>Como colocar no ar em poucos passos</h2>
+          </div>
+
+          <div class="timeline-list">
+            <article class="timeline-item">
+              <span class="timeline-step">01</span>
+              <div>
+                <h3>Configure o ambiente</h3>
+                <p>Defina `DISCORD_WEBHOOK_URL`, `GITHUB_WEBHOOK_SECRET` e, se quiser resumo natural, `OPENROUTER_API_KEY`.</p>
+              </div>
+            </article>
+
+            <article class="timeline-item">
+              <span class="timeline-step">02</span>
+              <div>
+                <h3>Expose a URL publica</h3>
+                <p>Use ngrok para teste local ou publique no Render/Railway antes de cadastrar o webhook do GitHub.</p>
+              </div>
+            </article>
+
+            <article class="timeline-item">
+              <span class="timeline-step">03</span>
+              <div>
+                <h3>Cadastre os eventos do GitHub</h3>
+                <p>Em `Settings &gt; Webhooks`, aponte para `/webhooks/github` e selecione `Pushes` e `Pull requests`.</p>
+              </div>
+            </article>
+
+            <article class="timeline-item">
+              <span class="timeline-step">04</span>
+              <div>
+                <h3>Receba no Discord</h3>
+                <p>Os embeds mostram branch, autor, commits, links do evento e o resumo IA quando a chave do OpenRouter estiver ativa.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="code-board" aria-label="Exemplo de variaveis de ambiente">
+          <div class="code-board-copy">
+            <p class="eyebrow">.env</p>
+            <h2>Configuracao direta, sem banco e sem bot</h2>
+            <p>
+              O backend foi desenhado para ser simples de deploy. Basta preencher as variaveis abaixo e iniciar o servidor.
+            </p>
+          </div>
+
+          <pre class="env-snippet">PORT=3000
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+GITHUB_WEBHOOK_SECRET=seu-segredo
+OPENROUTER_API_KEY=sk-or-v1-...
+OPENROUTER_MODEL=google/gemini-3.1-flash-lite</pre>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+  </html>

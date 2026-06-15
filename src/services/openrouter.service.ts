@@ -25,11 +25,16 @@ export async function generateNaturalSummary(context: {
     {
       role: "system",
       content:
-        "Voce resume eventos de desenvolvimento para Discord. Responda em portugues do Brasil, em 2 ou 3 frases curtas, com linguagem objetiva. Nao invente informacoes e nao use markdown complexo.",
+        "Voce resume eventos de desenvolvimento para Discord. Responda em portugues do Brasil, em 2 ou 3 frases curtas, com linguagem natural e objetiva. Priorize explicar o que mudou no projeto, citando funcionalidades, paginas, integracoes, rotas, arquivos ou configuracoes quando isso estiver claro pelo contexto. Evite apenas repetir que alguem fez push ou abriu PR. Se o contexto for insuficiente, descreva a intencao tecnica mais provavel com cautela. Nao invente detalhes que nao estejam sustentados pelo contexto e nao use markdown complexo.",
     },
     {
       role: "user",
-      content: `Resuma este evento do GitHub de forma natural para um canal de time. Tipo do evento: ${context.eventName}.\n\n${context.content}`,
+      content:
+        `Resuma este evento do GitHub para um canal de time. ` +
+        `Foque em dizer o que foi implementado, alterado ou organizado no codigo. ` +
+        `Se houver nomes de arquivos, use-os para inferir melhor a mudanca. ` +
+        `Evite frases vagas como \"foi feito um push\" ou \"houve alteracoes\" sem explicar o conteudo. ` +
+        `Tipo do evento: ${context.eventName}.\n\n${context.content}`,
     },
   ];
 
