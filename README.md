@@ -56,7 +56,7 @@ PORT=3000
 DISCORD_WEBHOOK_URL=
 GITHUB_WEBHOOK_SECRET=
 OPENROUTER_API_KEY=
-OPENROUTER_MODEL=google/gemini-3.1-flash-lite
+OPENROUTER_MODEL=qwen/qwen3-next-80b-a3b-instruct:free
 ```
 
 ### Onde colocar a chave do OpenRouter
@@ -74,7 +74,7 @@ PORT=3000
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 GITHUB_WEBHOOK_SECRET=meu-segredo
 OPENROUTER_API_KEY=sk-or-v1-...
-OPENROUTER_MODEL=google/gemini-3.1-flash-lite
+OPENROUTER_MODEL=qwen/qwen3-next-80b-a3b-instruct:free
 ```
 
 Se `OPENROUTER_API_KEY` nao for definido, o projeto continua funcionando normalmente, apenas sem resumo por IA.
@@ -178,24 +178,28 @@ Usando `fetch` nativo e um modelo configuravel em `OPENROUTER_MODEL`.
 
 Se a chamada da IA falhar, o webhook nao quebra. A notificacao continua sendo enviada ao Discord sem o campo de resumo.
 
+O projeto agora aceita somente modelos gratuitos aprovados. Se `OPENROUTER_MODEL` for configurado com um modelo fora dessa lista, a aplicacao falha ao iniciar para evitar custo acidental.
+
 ### Modelo padrao configurado
 
-- `google/gemini-3.1-flash-lite`
+- `qwen/qwen3-next-80b-a3b-instruct:free`
 
-Esse modelo foi escolhido por ser leve e adequado para resumos curtos.
+Esse modelo foi escolhido por estar marcado como gratuito e ser adequado para resumos curtos.
 
 ### Modelos que apareceram disponiveis na listagem atual do OpenRouter
 
-- `google/gemini-3.1-flash-lite`
-- `google/gemini-3.5-flash`
-- `qwen/qwen3.6-flash`
-- `qwen/qwen3.7-plus`
-- `ibm-granite/granite-4.1-8b`
-- `~openai/gpt-mini-latest`
-- `~google/gemini-flash-latest`
-- `~anthropic/claude-haiku-latest`
+- `qwen/qwen3-next-80b-a3b-instruct:free`
+- `meta-llama/llama-3.3-70b-instruct:free`
+- `openai/gpt-oss-20b:free`
+- `openai/gpt-oss-120b:free`
+- `nousresearch/hermes-3-llama-3.1-405b:free`
+- `nvidia/nemotron-3-ultra-550b-a55b:free`
+- `nvidia/nemotron-3-super-120b-a12b:free`
+- `nvidia/nemotron-3-nano-30b-a3b:free`
+- `nvidia/nemotron-nano-9b-v2:free`
+- `meta-llama/llama-3.2-3b-instruct:free`
 
-Voce pode trocar o modelo alterando apenas `OPENROUTER_MODEL` no `.env`.
+Voce pode trocar o modelo alterando `OPENROUTER_MODEL` no `.env`, desde que ele esteja na lista aprovada de modelos free.
 
 ## Teste local com ngrok
 

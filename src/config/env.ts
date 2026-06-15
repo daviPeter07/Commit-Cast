@@ -2,6 +2,19 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const FREE_OPENROUTER_MODELS = new Set([
+  'qwen/qwen3-next-80b-a3b-instruct:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'openai/gpt-oss-20b:free',
+  'openai/gpt-oss-120b:free',
+  'nousresearch/hermes-3-llama-3.1-405b:free',
+  'nvidia/nemotron-3-ultra-550b-a55b:free',
+  'nvidia/nemotron-3-super-120b-a12b:free',
+  'nvidia/nemotron-3-nano-30b-a3b:free',
+  'nvidia/nemotron-nano-9b-v2:free',
+  'meta-llama/llama-3.2-3b-instruct:free'
+]);
+
 function getRequiredEnv(name: string): string {
   const value = process.env[name];
 
@@ -12,11 +25,24 @@ function getRequiredEnv(name: string): string {
   return value;
 }
 
+function getOpenRouterFreeModel(): string {
+  const model = process.env.OPENROUTER_MODEL || 'qwen/qwen3-next-80b-a3b-instruct:free';
+
+  if (!FREE_OPENROUTER_MODELS.has(model)) {
+    throw new Error(
+      `OPENROUTER_MODEL must be one of the approved free models. Received: ${model}`
+    );
+  }
+
+  return model;
+}
+
 export const env = {
   port: Number(process.env.PORT || 3000),
   discordWebhookUrl: getRequiredEnv("DISCORD_WEBHOOK_URL"),
   githubWebhookSecret: getRequiredEnv("GITHUB_WEBHOOK_SECRET"),
   openRouterApiKey: process.env.OPENROUTER_API_KEY,
-  openRouterModel:
-    process.env.OPENROUTER_MODEL || "google/gemini-3.1-flash-lite",
+  openRouterModel: getOpenRouterFreeModel(),
 };
+
+export { FREE_OPENROUTER_MODELS };
