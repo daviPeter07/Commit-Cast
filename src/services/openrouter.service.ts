@@ -1,4 +1,4 @@
-import { env } from "../config/env";
+import { env, FREE_OPENROUTER_MODELS } from "../config/env";
 
 type OpenRouterMessage = {
   role: "system" | "user";
@@ -12,6 +12,12 @@ type OpenRouterResponse = {
     };
   }>;
 };
+
+function getModelFallbackList(): string[] {
+  const freeModels = Array.from(FREE_OPENROUTER_MODELS);
+
+  return [env.openRouterModel, ...freeModels.filter((model) => model !== env.openRouterModel)];
+}
 
 export async function generateNaturalSummary(context: {
   eventName: "push" | "pull_request";
@@ -38,33 +44,50 @@ export async function generateNaturalSummary(context: {
     },
   ];
 
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.openRouterApiKey}`,
-        "Content-Type": "application/json",
-        "X-OpenRouter-Title": "github-discord-notifier",
-      },
-      body: JSON.stringify({
-        model: env.openRouterModel,
-        messages,
-        temperature: 0.2,
-        max_tokens: 140,
-      }),
-    },
-  );
+  const modelsToTry = getModelFallbackList();
+  let lastError: Error | null = null;
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `OpenRouter request failed: ${response.status} ${errorText}`,
+  for (const model of modelsToTry) {
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.openRouterApiKey}`,
+          "Content-Type": "application/json",
+          "X-OpenRouter-Title": "github-discord-notifier",
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: 0.2,
+          max_tokens: 140,
+        }),
+      },
     );
+
+    if (response.ok) {
+      const data = (await response.json()) as OpenRouterResponse;
+      const content = data.choices?.[0]?.message?.content?.trim();
+
+      return content || null;
+    }
+
+    const errorText = await response.text();
+
+    if (response.status === 429 || response.status >= 500) {
+      lastError = new Error(
+        `OpenRouter request failed for ${model}: ${response.status} ${errorText}`,
+      );
+      continue;
+    }
+
+    throw new Error(`OpenRouter request failed: ${response.status} ${errorText}`);
   }
 
-  const data = (await response.json()) as OpenRouterResponse;
-  const content = data.choices?.[0]?.message?.content?.trim();
+  if (lastError) {
+    throw lastError;
+  }
 
-  return content || null;
+  return null;
 }
