@@ -27,7 +27,7 @@ function getRequiredEnv(name: string): string {
 
 function getOpenRouterFreeModel(): string {
   const model =
-    process.env.OPENROUTER_MODEL || "qwen/qwen3-next-80b-a3b-instruct:free";
+    process.env.OPENROUTER_MODEL || "openai/gpt-oss-120b:free";
 
   if (!FREE_OPENROUTER_MODELS.has(model)) {
     throw new Error(
