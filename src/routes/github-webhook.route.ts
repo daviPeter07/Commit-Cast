@@ -39,7 +39,7 @@ githubWebhookRouter.post(
       }
 
       const payload = JSON.parse(rawBody.toString("utf8"));
-      const discordPayload = buildDiscordPayloadFromGitHubEvent(
+      const discordPayload = await buildDiscordPayloadFromGitHubEvent(
         eventName,
         payload,
       );
