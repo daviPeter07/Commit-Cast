@@ -76,6 +76,7 @@ async function buildPushPayload(payload: PushEventPayload): Promise<DiscordWebho
   const commits = payload.commits ?? [];
   const author = payload.pusher?.name || commits[0]?.author?.name || 'Unknown';
   const changedFiles = summarizePushFiles(commits);
+  const changedFileList = listChangedFiles(commits);
   const commitLines = commits.length
     ? commits
         .slice(0, 10)
@@ -89,7 +90,10 @@ async function buildPushPayload(payload: PushEventPayload): Promise<DiscordWebho
 
   const extraCommits = commits.length > 10 ? `\n...and ${commits.length - 10} more commit(s).` : '';
   const compareUrl = payload.compare || payload.head_commit?.url || payload.repository.html_url;
-  const aiSummary = await safeGenerateSummary('push', buildPushSummaryPrompt(payload, branch, author, changedFiles));
+  const aiSummary = await safeGenerateSummary(
+    'push',
+    buildPushSummaryPrompt(payload, branch, author, changedFiles, changedFileList)
+  );
   const fields = [
     { name: 'Repositorio', value: payload.repository.full_name, inline: true },
     { name: 'Branch', value: branch, inline: true },
@@ -209,7 +213,8 @@ function buildPushSummaryPrompt(
   payload: PushEventPayload,
   branch: string,
   author: string,
-  changedFiles: string
+  changedFiles: string,
+  changedFileList: string
 ): string {
   const commitMessages = (payload.commits ?? [])
     .slice(0, 10)
@@ -222,9 +227,39 @@ function buildPushSummaryPrompt(
     `Autor: ${author}`,
     `Quantidade de commits: ${payload.commits.length}`,
     `Arquivos alterados: ${changedFiles}`,
+    'Arquivos envolvidos:',
+    changedFileList,
     'Mensagens dos commits:',
     commitMessages || 'Nenhuma mensagem disponivel.'
   ].join('\n');
+}
+
+function listChangedFiles(commits: PushEventPayload['commits']): string {
+  const added = new Set<string>();
+  const modified = new Set<string>();
+  const removed = new Set<string>();
+
+  for (const commit of commits) {
+    for (const file of commit.added ?? []) {
+      added.add(`added: ${file}`);
+    }
+
+    for (const file of commit.modified ?? []) {
+      modified.add(`modified: ${file}`);
+    }
+
+    for (const file of commit.removed ?? []) {
+      removed.add(`removed: ${file}`);
+    }
+  }
+
+  const lines = [...added, ...modified, ...removed].slice(0, 20);
+
+  if (lines.length === 0) {
+    return 'Nenhum arquivo listado no payload.';
+  }
+
+  return lines.join('\n');
 }
 
 function buildPullRequestSummaryPrompt(
