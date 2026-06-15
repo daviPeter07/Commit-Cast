@@ -21,6 +21,12 @@ Backend simples em Node.js com TypeScript e Express para receber webhooks do Git
 ## Estrutura
 
 ```text
+public/
+  index.html
+  styles.css
+  app.js
+  favicon.svg
+
 src/
   config/
     env.ts
@@ -90,6 +96,7 @@ npm start
 
 ## Endpoint disponivel
 
+- `GET /`
 - `POST /webhooks/github`
 - `GET /health`
 
